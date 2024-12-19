@@ -13,8 +13,8 @@ import mongoose from 'mongoose'
 import { logRequestTime } from './src/middlewares/logRequestTime.middleware.js'
 import { logRequestMethod } from './src/middlewares/logRequestMethod.middleware.js'
 import { DATABASE_CONFIG } from './src/configs/database.config.js'
-import swaggerUi from 'swagger-ui-express'
-import swaggerDocument from './swagger-output.json' assert { type: 'json' }
+// import swaggerUi from 'swagger-ui-express'
+// import swaggerDocument from './swagger-output.json' assert { type: 'json' }
 import route from './src/routes/index.route.js'
 const app = express()
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -47,7 +47,7 @@ const limiter = rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false
 })
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
 const start = async () => {
   try {
