@@ -11,7 +11,11 @@ const transporter = nodemailer.createTransport({
     user: MAIL_CONFIG.GOOGLE_GMAIL,
     pass: MAIL_CONFIG.GOOGLE_KEY
   },
-  secure: true
+  secure: true,
+  tls: {
+    rejectUnauthorized: false, // Debug: Chấp nhận chứng chỉ không hợp lệ
+  },
+
 })
 const sendMail = ({ to, subject, html }) => {
   const mailData = {

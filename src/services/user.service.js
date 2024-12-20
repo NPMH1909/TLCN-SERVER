@@ -242,16 +242,15 @@ const deleteUser = async (id) => {
 }
 
 const resetPassword = async (otp, newPassword) => {
+  console.log('otp', otp)
   const user = await UserModel.findOne({otp});
-
+  console.log('user', user)
   if (!user) {
     throw new BadRequestError('Mã OTP không hợp lệ hoặc đã hết hạn');
   }
 
-  // Hash mật khẩu mới
   const hashedPassword = await createHash(newPassword + user.salt);
 
-  // Cập nhật mật khẩu và xoá OTP
   await UserModel.findByIdAndUpdate(user._id, {
     password: hashedPassword,
     otp: null, // Xoá OTP sau khi sử dụng
