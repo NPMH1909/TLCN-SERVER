@@ -441,23 +441,7 @@ const createOrder = async (
   return order;
 };
 
-// const createWalkinOrder = async ( {restaurant_id, menu_list, total }) => {
-//   // Lấy nhà hàng
-//   const restaurant = await RestaurantModel.findById(restaurant_id);
 
-//   // Tạo đơn hàng cho khách walk-in
-//   const order = await OrderModel.create({
-//     _id: new mongoose.Types.ObjectId(),
-//     is_walk_in: true, // Đánh dấu là khách walk-in
-//     restaurant_id,
-//     checkin: Date.now(),
-//     status: "ONHOLD", // Đơn hàng đang chờ phục vụ, khách đã có mặt
-//     list_menu: menu_list,
-//     total: Number(total).toFixed(0),
-//   });
-
-//   return order;
-// };
 const createWalkinOrder = async (user_id,{ menu_list, total }) => {
   // Lấy thông tin nhà hàng từ StaffModel dựa trên user_id
   const staff = await StaffModel.findOne({ staff_id: user_id }); // Lấy thông tin nhân viên từ user_id

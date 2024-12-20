@@ -241,22 +241,26 @@ const deleteUser = async (id) => {
   })
 }
 
-const resetPassword = async (code, newPassword) => {
-  jwt.verify(code, 'secret', async (err, decoded) => {
-    if (err || !decoded) {
-      throw new BadRequestError('Invalid access')
-    } else {
-      const result = await this.checkKey(decoded.data)
-      if (result.length === 0) {
-        throw new NotFoundError('User not found')
-      }
+const resetPassword = async (otp, newPassword) => {
+  const user = await UserModel.findOne({otp});
 
-      const hashedPassword = createHash(newPassword + result[0].salt)
+  if (!user) {
+    throw new BadRequestError('Mã OTP không hợp lệ hoặc đã hết hạn');
+  }
 
-      return await UserModel.findByIdAndUpdate(result[0]._id, { password: hashedPassword, updated_at: Date.now() })
-    }
-  })
-}
+  // Hash mật khẩu mới
+  const hashedPassword = await createHash(newPassword + user.salt);
+
+  // Cập nhật mật khẩu và xoá OTP
+  await UserModel.findByIdAndUpdate(user._id, {
+    password: hashedPassword,
+    otp: null, // Xoá OTP sau khi sử dụng
+    updated_at: Date.now(),
+  });
+
+  return { message: 'Đặt lại mật khẩu thành công' };
+};
+
 const findUsersByAnyField = async (searchTerm, page, size) => {
   const isObjectId = Types.ObjectId.isValid(searchTerm)
   const users = await UserModel.aggregate([

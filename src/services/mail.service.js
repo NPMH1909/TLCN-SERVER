@@ -1,6 +1,6 @@
 import { MAIL_CONFIG } from '../configs/mail.config.js'
 import nodemailer from 'nodemailer'
-import { createApiKey } from '../middlewares/useApiKey.middleware.js'
+import { generateOtp } from '../middlewares/useApiKey.middleware.js'
 import { UserModel } from '../models/users.model.js'
 import { BadRequestError } from '../errors/badRequest.error.js'
 import { NotFoundError } from '../errors/notFound.error.js'
@@ -30,17 +30,25 @@ const sendMail = ({ to, subject, html }) => {
 }
 
 const sendResetPasswordMail = async (to) => {
-  const user = await UserModel.find({ email: to }).orFail(new NotFoundError('User not found'))
-  const code = createApiKey({ id: user[0]._id, email: user[0].email })
-  const subject = 'Mail reset mật khẩu của bạn'
-  const html = `<h1>Mã reset mật khẩu của bạn</h1><p>Mã của bạn là: <strong>${code}</strong></p>`
+  const user = await UserModel.findOne({ email: to }).orFail(new NotFoundError('User not found'));
+  
+  const otp = generateOtp(); // Tạo OTP
+  const otpExpiry = Date.now() + 15 * 60 * 1000; // OTP có hiệu lực trong 15 phút
+
+  // Lưu OTP và thời gian hết hạn vào cơ sở dữ liệu
+  await UserModel.findByIdAndUpdate(user._id, { otp });
+
+  const subject = 'Mã xác thực để reset mật khẩu của bạn';
+  const html = `<h1>Mã xác thực reset mật khẩu</h1><p>Mã của bạn là: <strong>${otp}</strong></p><p>OTP sẽ hết hạn sau 15 phút.</p>`;
+  
   transporter.sendMail({ to, subject, html }, (err, info) => {
     if (err) {
-      throw err
+      throw err;
     } else {
-      return info.messageId
+      return info.messageId;
     }
-  })
-}
+  });
+};
+
 
 export const MailService = { sendMail, sendResetPasswordMail }

@@ -18,6 +18,10 @@ export const createApiKey = (data) => {
   )
   return token
 }
+export const generateOtp = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 export const requireApiKey = async (req, res, next) => {
   try {
     if (CommonUtils.checkNullOrUndefined(req.headers.authorization)) {

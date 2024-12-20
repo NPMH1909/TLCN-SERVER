@@ -33,7 +33,7 @@ OrderRouter.get(
   handleValidationErrors,
   OrderController.confirmOrder
 )
-OrderRouter.get('/direct/confirm/:id', requireApiKey, OrderController.confirmDirectOrder)
+OrderRouter.get('/direct/confirm/:id',requireApiKey,  OrderController.confirmDirectOrder)
 OrderRouter.post('/pay/:id', requireApiKey, OrderGetByIdValidation, handleValidationErrors, OrderController.payOrder)
 OrderRouter.post('/', requireApiKey, OrderCreateValidation, handleValidationErrors, OrderController.createOrder)
 OrderRouter.post('/walkin/', requireApiKey, OrderCreateValidation, handleValidationErrors, OrderController.createWalkinOrder)

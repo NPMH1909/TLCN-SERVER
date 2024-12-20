@@ -19,28 +19,38 @@ const getReviewById = async (id) => {
   }
 };
 
-const deleteReview = async (id) => {
-  try {
-    return await ReviewModel.findByIdAndUpdate(
-      id,
-      { deleted_at: new Date() },
-      { new: true }
-    );
-  } catch (error) {
-    throw error;
+
+export const updateReview = async (id, content, parent_id, image) => {
+  const review = await ReviewModel.findById(id);
+
+  if (!review) {
+    throw { statusCode: 404, message: 'Review not found' };
   }
+
+  // Cập nhật nội dung
+  review.content = content || review.content;
+  review.parent_id = parent_id || review.parent_id;
+
+  // Cập nhật ảnh nếu có
+  if (image) {
+    review.image = {
+      url: image.path,
+      id: image.filename,
+    };
+  }
+
+  review.updated_at = new Date();
+  return await review.save();
 };
 
-const updateReview = async (id, data) => {
-  try {
-    return await ReviewModel.findByIdAndUpdate(
-      id,
-      { ...data, updated_at: new Date() },
-      { new: true }
-    );
-  } catch (error) {
-    throw error;
+export const deleteReviewById = async (id) => {
+  const deletedReview = await ReviewModel.findByIdAndDelete(id);
+
+  if (!deletedReview) {
+    throw { statusCode: 404, message: 'Review not found' };
   }
+
+  return deletedReview;
 };
 
 
@@ -100,7 +110,7 @@ const getReviewsWithReplies = async (restaurant_id, page, limit) => {
 export const ReviewService={
   createReview,
   updateReview,
-  deleteReview,
+  deleteReviewById,
   getReviewsWithReplies,
   getReviewById,
 }
