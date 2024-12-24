@@ -52,18 +52,39 @@ const incrementViewCount = async (videoId) => {
 
 const getVideosByUserId = async (userId, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
-  const videos = await VideoModel.find({ user: userId })
+
+  // Tìm tất cả nhà hàng thuộc userId
+  const restaurants = await RestaurantModel.find({ user_id: userId }, '_id');
+  const restaurantIds = restaurants.map((restaurant) => restaurant._id);
+
+  // Nếu không có nhà hàng, trả về rỗng
+  if (restaurantIds.length === 0) {
+    return {
+      videos: [],
+      pagination: {
+        totalPages: 0,
+        currentPage: page,
+      },
+    };
+  }
+
+  // Tìm video dựa trên restaurantIds
+  const videos = await VideoModel.find({ restaurant: { $in: restaurantIds } })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
-  const totalVideos = await VideoModel.countDocuments({ user: userId });
-  
+
+  const totalVideos = await VideoModel.countDocuments({ restaurant: { $in: restaurantIds } });
+
   return {
     videos: videos || [],
-    pagination: {totalPages: Math.ceil(totalVideos / limit),
-      currentPage: page,}
+    pagination: {
+      totalPages: Math.ceil(totalVideos / limit),
+      currentPage: page,
+    },
   };
 };
+
 
 const deleteVideo = async (videoId) => {
   const video = await VideoModel.findByIdAndDelete(videoId);
