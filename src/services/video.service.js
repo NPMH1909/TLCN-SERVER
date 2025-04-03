@@ -38,30 +38,38 @@ const getVideos = async (restaurantName = "") => {
 };
 
 
-
-const incrementViewCount = async (videoId) => {
-  const video = await VideoModel.findById(videoId);
-
-  if (!video) {
-    throw new Error('Video not found');
-  }
-
-  video.views += 1;
-  return await video.save();
-};
-
 const getVideosByUserId = async (userId, page = 1, limit = 10) => {
   const skip = (page - 1) * limit;
-  const videos = await VideoModel.find({ user: userId })
+
+  // Tìm tất cả nhà hàng thuộc userId
+  const restaurants = await RestaurantModel.find({ user_id: userId }, '_id');
+  const restaurantIds = restaurants.map((restaurant) => restaurant._id);
+
+  // Nếu không có nhà hàng, trả về rỗng
+  if (restaurantIds.length === 0) {
+    return {
+      videos: [],
+      pagination: {
+        totalPages: 0,
+        currentPage: page,
+      },
+    };
+  }
+
+  // Tìm video dựa trên restaurantIds
+  const videos = await VideoModel.find({ restaurant: { $in: restaurantIds } })
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);
-  const totalVideos = await VideoModel.countDocuments({ user: userId });
-  
+
+  const totalVideos = await VideoModel.countDocuments({ restaurant: { $in: restaurantIds } });
+
   return {
     videos: videos || [],
-    pagination: {totalPages: Math.ceil(totalVideos / limit),
-      currentPage: page,}
+    pagination: {
+      totalPages: Math.ceil(totalVideos / limit),
+      currentPage: page,
+    },
   };
 };
 
@@ -90,11 +98,45 @@ const updateVideo = async (videoId, updateData) => {
 
   return video;
 };
+const getMostLikedVideo = async (restaurantId) => {
+  const video = await VideoModel.findOne({ restaurant: restaurantId }) 
+    .sort({ likes: -1 }) // Sắp xếp theo lượt thích giảm dần
+    .limit(1);
+
+  if (!video) {
+    throw new Error("Không tìm thấy video nào.");
+  }
+
+  return video;
+};
+const likeVideo = async ({videoId, userId}) => {
+  const video = await VideoModel.findById(videoId);
+  if (!video) throw new Error('Video not found');
+
+  // Kiểm tra xem user đã like chưa
+  const hasLiked = video.likedUsers.includes(userId);
+  
+  if (hasLiked) {
+    // Nếu đã like thì unlike (bỏ like)
+    video.likes -= 1;
+    video.likedUsers = video.likedUsers.filter(id => id.toString() !== userId);
+  } else {
+    // Nếu chưa like thì like
+    video.likes += 1;
+    video.likedUsers.push(userId);
+  }
+
+  await video.save();
+  return video;
+};
+
 
 export const VideoService = {
 addVideo,
 deleteVideo,
 updateVideo,
 getVideos,
-getVideosByUserId
+getVideosByUserId,
+likeVideo,
+getMostLikedVideo
 }

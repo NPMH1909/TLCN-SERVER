@@ -12,7 +12,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage });
 
-const uploadFiles = (req, res, next) => {
+export const uploadFiles = (req, res, next) => {
   upload.single('image')(req, res, (err) => {
     if (err) {
       return res.status(400).json({ 
@@ -24,4 +24,16 @@ const uploadFiles = (req, res, next) => {
   });
 };
 
-export default uploadFiles;
+export const uploadMultipleFiles = (req, res, next) => {
+  upload.array('images', 10)(req, res, (err) => { // Cho phép tối đa 10 ảnh
+    if (err) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Lỗi trong quá trình upload hình ảnh.', err, 
+      });
+    }
+    next(); 
+  });
+};
+
+

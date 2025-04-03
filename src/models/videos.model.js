@@ -35,6 +35,8 @@ const videoSchema = new mongoose.Schema(
       ref: 'Restaurant', // Ánh xạ đến mô hình 'Restaurant'
       required: true, // Mỗi video phải thuộc về một nhà hàng
     },
+    likedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Danh sách user đã like
+
   },
   {
     timestamps: true, // Tự động thêm createdAt và updatedAt

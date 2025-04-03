@@ -14,5 +14,6 @@ VideoRouter.put('/update/:videoId',uploadVideoMiddleware, VideoController.update
 VideoRouter.delete('/delete/:videoId', VideoController.deleteVideo);
 // Route cập nhật lượt xem video
 // VideoRouter.put('/:videoId/view', VideoController.incrementViewCount);
+VideoRouter.get("/most-liked/:restaurantId", VideoController.getMostLikedVideo);
 
 export default VideoRouter

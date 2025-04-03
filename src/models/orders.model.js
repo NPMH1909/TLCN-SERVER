@@ -28,7 +28,8 @@ const OrderSchema = new Schema(
     amount_due: { type: Number, default: function () { return this.total - this.amount_received; } }, // Tiền cần thanh toán (tính theo cọc)
     created_at: { type: Date, default: Date.now },
     updated_at: { type: Date, default: Date.now },
-    deleted_at: { type: Date, default: null }
+    deleted_at: { type: Date, default: null },
+    reminder_sent: {type: Boolean, default: false}
   },
   { timestamps: true }
 );

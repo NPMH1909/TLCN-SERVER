@@ -88,30 +88,42 @@ const getAllMenuItems = async (page = 1, size = 5) => {
     }
   }
 }
-const getMenuByRestaurant = async (restaurantId, page = 1, size = 10) => {
-    const offset = (page - 1) * size;
+const getMenuByRestaurant = async (restaurantId, page = 1, size = 10, category = null) => {
+  const offset = (page - 1) * size;
 
-    const menuItems = await MenuItem.find({ restaurant_id: restaurantId, deleted_at: null })
-      .skip(offset)          // Bỏ qua số bản ghi đã cho từ page trước
-      .limit(size)           // Giới hạn số lượng bản ghi trả về
-      .sort({ created_at: -1 }); // Sắp xếp theo thời gian tạo (giảm dần)
+  // Cấu trúc đối tượng điều kiện tìm kiếm
+  const query = { 
+    restaurant_id: restaurantId, 
+    deleted_at: null 
+  };
 
-    // Đếm tổng số menu item để tính toán tổng số trang
-    const totalItems = await MenuItem.countDocuments({ restaurant_id: restaurantId, deleted_at: null });
+  // Nếu có category thì thêm điều kiện lọc theo category
+  if (category) {
+    query.category = category;
+  }
 
-    // Tính toán tổng số trang
-    const totalPages = Math.ceil(totalItems / size);
+  const menuItems = await MenuItem.find(query)
+    .skip(offset)          // Bỏ qua số bản ghi đã cho từ page trước
+    .limit(size)           // Giới hạn số lượng bản ghi trả về
+    .sort({ created_at: -1 }); // Sắp xếp theo thời gian tạo (giảm dần)
 
-    return {
-      menuItems,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalItems,
-        pageSize: size,
-      }
-    };
+  // Đếm tổng số menu item để tính toán tổng số trang
+  const totalItems = await MenuItem.countDocuments(query);
+
+  // Tính toán tổng số trang
+  const totalPages = Math.ceil(totalItems / size);
+
+  return {
+    menuItems,
+    pagination: {
+      currentPage: page,
+      totalPages,
+      totalItems,
+      pageSize: size,
+    }
+  };
 };
+
 
 const getMenuByRestaurantForStaff = async (restaurantId) => {
   const menuItems = await MenuItem.find({ restaurant_id: restaurantId, deleted_at: null })

@@ -1,5 +1,7 @@
 import { authenticationAdmin, requireApiKey } from '../middlewares/useApiKey.middleware.js'
+import ChatBox from './chatbox.route.js'
 import CommentRouter from './comment.route.js'
+import dishReviewRouter from './dishReview.route.js'
 import LogRouter from './log.route.js'
 import MenuRouter from './menu.route.js'
 import { OrderRouter } from './order.route.js'
@@ -26,7 +28,10 @@ const route = (app) => {
 
   app.use('/videos', VideoRouter)
   app.use('/reviews', ReviewRouter)
+  app.use('/dishreviews', dishReviewRouter)
+
   app.use('/comments', CommentRouter)
+  app.use('/chatbot', ChatBox)
 
   app.use('/stats', requireApiKey, authenticationAdmin, StatRouter)
 

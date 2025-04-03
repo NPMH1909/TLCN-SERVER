@@ -6,6 +6,7 @@ import { GOOGLE_CONFIG } from '../configs/google.config.js'
 import { TableModel } from '../models/tables.model.js'
 import MenuItem from '../models/menus.model.js'
 import { ConflictError } from '../errors/conflict.error.js'
+import { UserModel } from '../models/users.model.js'
 
 const getAllRestaurant = async (
   page = 1, 
@@ -16,7 +17,8 @@ const getAllRestaurant = async (
   priceRange = 'all', 
   provinceCode = '', 
   districtCode = '', 
-  detail = ''
+  detail = '',
+  type = '' // Thêm tham số type để lọc theo loại nhà hàng
 ) => {
   const regex = new RegExp(searchTerm, 'i');
   
@@ -53,6 +55,11 @@ const getAllRestaurant = async (
     matchConditions['address.detail'] = new RegExp(detail, 'i');
   }
 
+  // Thêm điều kiện lọc theo type nếu có
+  if (type) {
+    matchConditions.type = type;
+  }
+
   const restaurants = await RestaurantModel.aggregate([
     { $match: matchConditions },
     {
@@ -79,6 +86,7 @@ const getAllRestaurant = async (
         rating: 1,
         image_url: 1,
         price_per_table: 1,
+        type: 1, // Đảm bảo type xuất hiện trong kết quả trả về
         createdAt: 1,
         promotionDetails: {
           $cond: {
@@ -112,6 +120,7 @@ const getAllRestaurant = async (
     } 
   };
 };
+
 
 
 
@@ -203,7 +212,7 @@ const getAllRestaurantWithPromotions = async (page = 1, size = 5) => {
   return { data: restaurantsWithPromotions, info: { total: totalCount, page, size, number_of_pages: Math.ceil(totalCount / size) } };
 };
 
-const getRestaurantById = async (id) => {
+const getRestaurantById = async (id, userId) => {
   const restaurant = await RestaurantModel.aggregate([
     { $match: { _id: Types.ObjectId.createFromHexString(id), deleted_at: null } },
     {
@@ -230,7 +239,7 @@ const getRestaurantById = async (id) => {
     },
     {
       $project: {
-        user: { $arrayElemAt: ['$user.name', 0] },
+        user: { $arrayElemAt: ['$user._id', 0] },
         name: 1,
         address: 1,
         openTime: 1,
@@ -247,6 +256,7 @@ const getRestaurantById = async (id) => {
         public_id_slider3: 1,
         public_id_slider4: 1,
         price_per_table: 1,
+        images:1,
         promotionDetails: {
           $cond: {
             if: { $eq: ['$promotionDetails.status', 'active'] },
@@ -278,6 +288,9 @@ const getRestaurantById = async (id) => {
 
   const menus = await MenuItem.find({ restaurant_id: id, deleted_at: null }).exec();
 
+  if(userId){
+    updateUserViewHistory(userId,id)
+  }
   return restaurant.length > 0
     ? {
         restaurant: restaurant[0],
@@ -325,19 +338,27 @@ const createRestaurant = async (
     public_id_slider2,
     public_id_slider3,
     public_id_slider4,
-    price_per_table
+    price_per_table,
+    images,
   }
 ) => {
-  console.log('address', address)
+console.log('address',address)
   const existingRestaurant = await RestaurantModel.findOne({
     name,
     address,
     deleted_at: null
-  })
+  });
 
   if (existingRestaurant) {
-    throw new ConflictError('Nhà hàng đã tồn tại')
+    throw new ConflictError('Nhà hàng đã tồn tại');
   }
+
+  // Lấy tọa độ từ địa chỉ
+  const coordinates = await getCoordinates(address);
+  if (!coordinates) {
+    throw new Error("Không thể lấy tọa độ từ địa chỉ");
+  }
+
   const newRestaurant = new RestaurantModel({
     _id: new mongoose.Types.ObjectId(),
     name,
@@ -357,10 +378,13 @@ const createRestaurant = async (
     public_id_slider4,
     price_per_table,
     user_id: id,
-  
-  })
-  return await newRestaurant.save()
-}
+    images,
+    location: { type: "Point", coordinates: [coordinates.lng, coordinates.lat] }
+  });
+
+  return await newRestaurant.save();
+};
+
 
 const updateRestaurant = async (
   id,
@@ -396,7 +420,10 @@ const updateRestaurant = async (
   // if (!restaurant || restaurant.deleted_at) {
   //   throw new NotFoundError('Nhà hàng không tìm thấy')
   // }
-
+  const coordinates = await getCoordinates(address);
+  if (!coordinates) {
+    throw new Error("Không thể lấy tọa độ từ địa chỉ");
+  }
   const result = await RestaurantModel.updateOne(
     { _id: Types.ObjectId.createFromHexString(id) },
     {
@@ -420,7 +447,9 @@ const updateRestaurant = async (
       public_id_slider4,
       price_per_table,
       promotions,
-      updated_at: Date.now()
+      updated_at: Date.now(),
+      location: { type: "Point", coordinates: [coordinates.lng, coordinates.lat] }
+
     }
   )
   if (result.modifiedCount === 0) {
@@ -730,7 +759,95 @@ const getDistrictsByProvince = async (provinceCode) => {
   ]);
   return districts;
 };
+
+const updateUserViewHistory = async (userId, restaurantId) => {
+  try {
+    await UserModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { viewedRestaurants: restaurantId } }, // Thêm nếu chưa có
+      { new: true }
+    );
+  } catch (error) {
+    console.error("Lỗi khi cập nhật lịch sử truy cập:", error);
+  }
+};
+const suggestRestaurantsForUser = async (userId) => {
+  try {
+    // Lấy thông tin user và kiểm tra tồn tại
+    const user = await UserModel.findById(userId).populate("viewedRestaurants");
+    if (!user) return [];
+
+    // Lấy danh sách ID nhà hàng đã xem gần đây
+    const viewedRestaurantIds = user.viewedRestaurants?.map((r) => r._id) || [];
+
+    // Số lượng nhà hàng đã xem gần nhất, tối đa 4
+    const numViewed = Math.min(viewedRestaurantIds.length, 4);
+    const numPopular = 8 - numViewed; // Số nhà hàng phổ biến cần lấy để đủ 8
+
+    // Lấy danh sách nhà hàng đã xem gần đây (nếu có)
+    const viewedRestaurants = await RestaurantModel.find({
+      _id: { $in: viewedRestaurantIds },
+    })
+      .sort({ lastViewed: -1 }) // Lấy theo thời gian xem gần nhất
+      .limit(numViewed);
+
+    // Lấy danh sách nhà hàng phổ biến (không trùng với danh sách đã xem)
+    const popularRestaurants = await RestaurantModel.find({
+      _id: { $nin: viewedRestaurantIds }, // Loại trừ nhà hàng đã xem
+    })
+      .sort({ rating: -1,  bookingCount: -1 }) // Ưu tiên nhà hàng phổ biến
+      .limit(numPopular);
+
+    // Kết hợp hai danh sách
+    return [...viewedRestaurants, ...popularRestaurants];
+
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách nhà hàng gợi ý:", error);
+    return [];
+  }
+};
+const findNearbyRestaurants = async (lat, lng, maxDistance = 10000) => {
+  try {
+    const restaurants = await RestaurantModel.find({
+      location: {
+        $near: {
+          $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
+          $maxDistance: maxDistance, // Giới hạn trong bán kính 5km
+        },
+      },
+    }).limit(10);
+    return restaurants;
+  } catch (error) {
+    throw new Error("Lỗi khi tìm nhà hàng gần nhất: " + error.message);
+  }
+};
+const getCoordinates = async (address) => {
+  const fullAddress = `${address.detail}, ${address.district}, ${address.province}, Việt Nam`;
+  console.log('first', fullAddress)
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (data.length > 0) {
+      return { lat: data[0].lat, lng: data[0].lon };
+    } else {
+      console.error("Không tìm thấy tọa độ.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Lỗi khi gọi API OSM:", error);
+    return null;
+  }
+};
+ const getTopRatedRestaurants = async () => {
+  return await RestaurantModel.find()
+    .sort({ rating: -1 }) // Sắp xếp giảm dần theo rating
+    .limit(5) // Lấy 5 nhà hàng hàng đầu
+    .select("name address rating image_url"); // Chỉ lấy các trường cần thiết
+};
+
 export const RestaurantService = {
+  updateUserViewHistory,
   getProvinces,getDistrictsByProvince,
   getAllRestaurant,
   getRestaurantById,
@@ -746,5 +863,9 @@ export const RestaurantService = {
   getAllRestaurantByFilterAndSort,
   getRestaurantIdAndNameByUserId,
   getAllRestaurantByUserId,
-  getAllRestaurantWithPromotions
+  getAllRestaurantWithPromotions,
+  suggestRestaurantsForUser,
+  findNearbyRestaurants,
+  getCoordinates,
+  getTopRatedRestaurants
 }

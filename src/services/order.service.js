@@ -13,6 +13,8 @@ import { RestaurantModel } from '../models/restaurants.model.js'
 import { MailService } from './mail.service.js'
 import { StaffModel } from '../models/staff.model.js'
 import PayOS from '@payos/node'
+import { momoConfig } from '../configs/momo.config.js'
+import crypto from "crypto";
 
 const getAllOrder = async (page = 1, size = 5) => {
   const orders = await OrderModel.aggregate([
@@ -230,13 +232,13 @@ const getAllOrderByUserId = async (id, page = 1, size = 5, status = '') => {
         name: 1,
         phone_number: 1,
         payment: 1,
-        menu_list: 1,
         status: 1,
         checkin: 1,
         orderCode: 1,
         total: 1,
         checkout: 1,
         email: 1,
+        list_menu:1,
       },
     },
   ]);
@@ -299,6 +301,7 @@ const getUserOrders = async (userId, page = 1, size = 5) => {
         checkin: 1,
         rating: 1,
         created_at: 1,
+        list_menu:1,
       },
     },
   ]);
@@ -374,7 +377,45 @@ const getOrderById = async (id) => {
   }
   return list
 }
+const payWithMoMo = async ({ orderCode, total }) => {
+  console.log('ordercode', orderCode)
+  const requestId = `momo_${orderCode}_${Date.now()}`;
+  const orderInfo = `Thanh toán đơn hàng ${orderCode}`;
+  const returnUrl = "http://localhost:5173/payment-success"; // URL khi thanh toán thành công
+  const notifyUrl = "http://localhost:5173/api/payment/momo-notify"; // URL nhận kết quả thanh toán
 
+  const rawData = `accessKey=${momoConfig.accessKey}&amount=${total}&extraData=&ipnUrl=${notifyUrl}&orderId=${orderCode}&orderInfo=${orderInfo}&partnerCode=${momoConfig.partnerCode}&redirectUrl=${returnUrl}&requestId=${requestId}&requestType=captureWallet`;
+
+  const signature = crypto.createHmac("sha256", momoConfig.secretKey)
+                          .update(rawData)
+                          .digest("hex");
+
+  const requestBody = {
+    partnerCode: momoConfig.partnerCode,
+    accessKey: momoConfig.accessKey,
+    requestId,
+    amount: total,
+    orderId: orderCode,
+    orderInfo,
+    redirectUrl: returnUrl,
+    ipnUrl: notifyUrl,
+    requestType: "captureWallet",
+    extraData: "",
+    lang: "vi",
+    signature,
+  };
+
+  try {
+    const response = await axios.post(momoConfig.endpoint, requestBody, {
+      headers: { "Content-Type": "application/json" }
+    });
+
+    return response.data.payUrl; // Trả về URL thanh toán MoMo
+  } catch (error) {
+    console.error("Lỗi khi tạo thanh toán MoMo:", error);
+    throw error;
+  }
+};
 const createOrder = async (
   id,
   { total_people, email, name, phone_number, payment, menu_list, checkin, restaurant_id, total }
@@ -437,10 +478,25 @@ const createOrder = async (
     const paymentLinkRes = await payOrder({ orderCode: order.orderCode, total });
     return { order, paymentLinkRes };
   }
-
+  if (payment === "MOMO_PAY") {
+    const paymentLink = await payWithMoMo({ orderCode: order.orderCode, total });
+    return { order, paymentLink };
+  }
+  updateBookingCount(restaurant_id);
   return order;
 };
 
+const updateBookingCount = async (restaurantId) => {
+  try {
+    await RestaurantModel.findByIdAndUpdate(
+      restaurantId,
+      { $inc: { bookingCount: 1 } }, // Tăng bookingCount lên 1
+      { new: true }
+    );
+  } catch (error) {
+    console.error("Lỗi cập nhật bookingCount:", error);
+  }
+};
 
 const createWalkinOrder = async (user_id,{ menu_list, total }) => {
   // Lấy thông tin nhà hàng từ StaffModel dựa trên user_id
@@ -1267,6 +1323,16 @@ const updateOrderRating = async (orderId, rating) => {
   return { updatedOrder, updatedRestaurant };
 };
 
+const getUpcomingBookings = async () => {
+  const now = new Date();
+  const twoHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+  return await OrderModel.find({
+    checkin: { $gte: now, $lte: twoHoursLater },
+    reminder_sent: { $ne: true } // Chưa gửi nhắc nhở // Lấy đặt bàn trong 2 giờ tới
+  }).populate("restaurant_id", "name"); // Lấy tên nhà hàng
+};
+
 
 export const OrderService = {
   getAllOrder,
@@ -1296,5 +1362,6 @@ export const OrderService = {
   updatePaymentStatus,
   getUserOrders,
   updateOrderRating,
-  updateStatus
+  updateStatus,
+  getUpcomingBookings
 }

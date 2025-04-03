@@ -60,11 +60,12 @@ const getVideos = async (req, res) => {
 
 
 const getVideosByUserId = async (req, res) => {
-  const { userId } = req.user;
+  const id = req.user.id
+  console.log('id', id)
   const { page = 1, limit = 10 } = req.query;
 
   try {
-    const { videos, totalPages, currentPage } = await VideoService.getVideosByUserId(userId, page, limit);
+    const { videos, totalPages, currentPage } = await VideoService.getVideosByUserId(id, page, limit);
 
     res.status(200).json({ videos, totalPages, currentPage });
   } catch (error) {
@@ -72,7 +73,18 @@ const getVideosByUserId = async (req, res) => {
     res.status(500).json({ message: 'Không thể lấy video, vui lòng thử lại.' });
   }
 };
+const likeVideo = async (req, res) => {
+  const userId = req.user.id
+  const { videoId } = req.params;
+  try {
+    const result = await VideoService.likeVideo({videoId, userId});
 
+    res.status(200).json({ result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Không thể lấy video, vui lòng thử lại.' });
+  }
+};
 
 const deleteVideo = async (req, res) => {
   const { videoId } = req.params;
@@ -109,6 +121,19 @@ const updateVideo = async (req, res) => {
     res.status(500).json({ message: 'Không thể cập nhật video, vui lòng thử lại.' });
   }
 };
+const getMostLikedVideo = async (req, res) => {
+  const { restaurantId } = req.params; // Lấy ID của nhà hàng từ URL
+
+  try {
+    const video = await VideoService.getMostLikedVideo(restaurantId);
+    res.status(200).json(video);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Không thể lấy video phổ biến nhất." });
+  }
+};
+
+
 
 export const VideoController = {
   addVideo,
@@ -116,5 +141,8 @@ export const VideoController = {
   getVideosByUserId,
   deleteVideo, 
   updateVideo,
+  likeVideo,
+  getMostLikedVideo,
+
 };
 

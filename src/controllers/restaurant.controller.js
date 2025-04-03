@@ -10,7 +10,7 @@ import { StaffService } from '../services/staff.service.js'
 const getAllRestaurant = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
   try {
-    const { sort, page, size, field, searchTerm, priceRange ,  provinceCode='', 
+    const { sort, page, size, field, searchTerm, priceRange ,  provinceCode='', type='', 
       districtCode = '', 
       detail = ''} = req.query; // Thêm priceRange vào đây
     const data = await RestaurantService.getAllRestaurant(
@@ -22,7 +22,8 @@ const getAllRestaurant = async (req, res, next) => {
       priceRange, // Truyền priceRange vào hàm Service
       provinceCode,
       districtCode,
-      detail
+      detail,
+      type,
     );
     next(new Response(HttpStatusCode.Ok, 'Thành Công', data.data, data.info).resposeHandler(res));
   } catch (error) {
@@ -42,6 +43,28 @@ const getAllRestaurantWithPromotions = async (req, res, next) => {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
   }
 };
+const getSuggestedRestaurantsForUser  = async (req, res, next) => {
+  // #swagger.tags=['Restaurant']
+  try {
+    const userId = req.user.id
+    console.log('userId', userId)
+    const data = await RestaurantService.suggestRestaurantsForUser(userId);
+    next(new Response(HttpStatusCode.Ok, 'Thành Công', data).resposeHandler(res));
+  } catch (error) {
+    next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
+  }
+}
+
+const getNearbyRestaurants   = async (req, res, next) => {
+  // #swagger.tags=['Restaurant']
+  try {
+    const { lat, lng } = req.query;
+    const restaurants = await RestaurantService.findNearbyRestaurants(lat, lng);
+    next(new Response(HttpStatusCode.Ok, 'Thành Công', restaurants).resposeHandler(res));
+  } catch (error) {
+    next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
+  }
+}
 
 const getAllRestaurantByUserId = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
@@ -57,7 +80,7 @@ const getAllRestaurantByUserId = async (req, res, next) => {
 const getRestaurantById = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
   try {
-    const data = await RestaurantService.getRestaurantById(req.params.id)
+    const data = await RestaurantService.getRestaurantById(req.params.id, req.user.id)
     if (data === null) {
       return (new Response(HttpStatusCode.NotFound, 'Không tìm thấy nhà hàng', data).resposeHandler(res))
     }
@@ -73,13 +96,28 @@ const createRestaurant = async (req, res, next) => {
     if (CommonUtils.checkNullOrUndefined(req.body)) {
       throw new BadRequestError('Dữ liệu là bắt buộc')
     }
-    const result = await RestaurantService.createRestaurant(req.user.id, req.body)
-    await LogService.createLog(req.user.id, 'Thêm nhà hàng')
-    next(new Response(HttpStatusCode.Created, 'Thành Công', result).resposeHandler(res))
+
+    // Lấy danh sách ảnh đã upload từ req.files
+    const images = req.files.map(file => ({
+      id: file.filename,  // Hoặc một ID ngẫu nhiên
+      url: file.path // URL ảnh trên Cloudinary
+    }));
+    
+
+    // Gắn danh sách ảnh vào dữ liệu tạo nhà hàng
+    const restaurantData = {
+      ...req.body,
+      images, // Lưu danh sách ảnh vào DB
+    };
+
+    const result = await RestaurantService.createRestaurant(req.user.id, restaurantData);
+    await LogService.createLog(req.user.id, 'Thêm nhà hàng');
+
+    next(new Response(HttpStatusCode.Created, 'Thành Công', result).resposeHandler(res));
   } catch (error) {
-    next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
+    next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
   }
-}
+};
 
 const updateRestaurant = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
@@ -195,5 +233,8 @@ export const RestaurantController = {
   getRestaurantIdAndNameByUserId,
   getAllRestaurantByUserId,
   getStaffRestaurant,
-  getAllRestaurantWithPromotions
+  getAllRestaurantWithPromotions,
+  getSuggestedRestaurantsForUser,
+  getNearbyRestaurants,
+
 }

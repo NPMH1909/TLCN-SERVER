@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
+import { RestaurantService } from '../services/restaurant.service.js';
 const ObjectId = Schema.ObjectId
 
 const Restaurant = new Schema(
@@ -6,17 +7,18 @@ const Restaurant = new Schema(
     name: { type: String, required: true, unique: true },
     address: {
       province: { type: String, required: true },
-      provinceCode:{type: String}, // Tỉnh/Thành phố
+      provinceCode:{type: String}, 
       district: { type: String, required: true },
-      districtCode:{type: String}, // Tỉnh/Thành phố
-      // Huyện/Quận
-      detail: { type: String, required: true },   // Địa chỉ chi tiết (số nhà, đường...)
+      districtCode:{type: String},
+      detail: { type: String, required: true }, 
     },
+    type: {type: String, required: true},
     openTime: { type: String, required: true },
     closeTime: { type: String, required: true },
     description: { type: String, required: true },
     rating:{type: Number, required: true, default:0},
     image_url: { type: String, required: true },
+    images: [ {id: {type: String}, url:{type: String}}],
     slider1: { type: String, required: true },
     slider2: { type: String, required: true },
     slider3: { type: String, required: true },
@@ -34,9 +36,15 @@ const Restaurant = new Schema(
     createdAt: { type: Date, required: true, default: Date.now },
     updated_at: { type: Date, required: true, default: Date.now },
     deleted_at: { type: Date, default: null },
-    user_id: { type: ObjectId, refs: 'Users', required: true }
+    user_id: { type: ObjectId, refs: 'Users', required: true },
+    bookingCount: {type: Number, default: 0},
+    location: { type: { type: String, enum: ["Point"], required: true }, coordinates: { type: [Number], required: true } }
   },
 )
+Restaurant.index({ location: "2dsphere" });
+
 const RestaurantModel = mongoose.model('Restaurants', Restaurant)
 
+
 export { RestaurantModel }
+

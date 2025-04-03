@@ -1,5 +1,5 @@
 import { HttpStatusCode } from "axios";
-import uploadFiles from "../middlewares/upload.middleware.js";
+import {uploadFiles} from "../middlewares/upload.middleware.js";
 import { ReviewService } from "../services/review.service.js";
 import { Response } from "../dto/response/response.js";
 import ReviewModel from "../models/reviews.model.js";
@@ -8,7 +8,6 @@ import ReviewModel from "../models/reviews.model.js";
 
 const createReviewController = async (req, res) => {
   try {
-
     await uploadFiles(req, res, async () => {
       const image = req.file
         ? {

@@ -46,9 +46,9 @@ const getMenuItemById = async (req, res, next) => {
 }
 const getMenuByRestaurant = async (req, res, next) => {
   try {
-    const {page, size} = req.query
+    const {page, size, category} = req.query
     const {restaurantId} = req.params
-    const item = await MenuService.getMenuByRestaurant(restaurantId, page||1, size||6)
+    const item = await MenuService.getMenuByRestaurant(restaurantId, page||1, size||6, category)
     next(new Response(HttpStatusCode.Ok, 'Thành Công', item).resposeHandler(res))
   } catch (error) {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
