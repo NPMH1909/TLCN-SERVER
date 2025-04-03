@@ -60,12 +60,9 @@ const getVideos = async (req, res) => {
 
 
 const getVideosByUserId = async (req, res) => {
-<<<<<<< HEAD
   const id = req.user.id
   console.log('id', id)
-=======
   const userId = req.user.id;
->>>>>>> c150bf0e98fd7616448cbd279092c5ed190c76ee
   const { page = 1, limit = 10 } = req.query;
 
   try {
