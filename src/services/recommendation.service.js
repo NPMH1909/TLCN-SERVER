@@ -26,11 +26,9 @@ export async function getRestaurantRecommendations() {
     try {
       // ✅ Dịch nội dung review từ tiếng Việt sang tiếng Anh
       const translated = await translate(content, { from: 'vi', to: 'en' });
-      //console.log('Translated:', translated);
 
       // ✅ Phân tích sentiment của nội dung đã dịch
       const result = winkSentiment(translated);
-      //console.log('Sentiment result:', result);
 
       sentimentScore = result.score;
     } catch (e) {
@@ -58,7 +56,7 @@ export async function getRestaurantRecommendations() {
   // Chuyển đổi sentimentMap thành mảng các đề xuất
   const recommendations = await Promise.all(
     Object.values(sentimentMap)
-      .filter((item) => item.total > 0)
+      .filter((item) => item.total > 0)  // Lọc các nhà hàng có ít nhất một đánh giá
       .map(async (item) => {
         const restaurant = await RestaurantModel.findById(item.restaurant_id);
         if (!restaurant) return null;
@@ -69,29 +67,34 @@ export async function getRestaurantRecommendations() {
         // Tính tỷ lệ tích cực / tiêu cực
         const positiveNegativeRatio = negativeRate === 0 ? positiveRate : positiveRate / negativeRate;
 
-        return {
-          _id: item.restaurant_id,
-          totalReviews: item.total,
-          positiveReviews: item.positive,
-          negativeReviews: item.negative,
-          positiveRate,
-          negativeRate,
-          positiveNegativeRatio, // Thêm tỷ lệ tích cực / tiêu cực
-          name: restaurant.name,
-          address: restaurant.address,
-          type: restaurant.type,
-          rating: restaurant.rating,
-          image_url: restaurant.image_url,
-          description: restaurant.description,
-          openTime: restaurant.openTime,
-          closeTime: restaurant.closeTime,
-          price_per_table: restaurant.price_per_table
-        };
+        // Chỉ trả về nhà hàng nếu tỷ lệ tích cực lớn hơn tiêu cực
+        if (positiveRate > negativeRate) {
+          return {
+            _id: item.restaurant_id,
+            totalReviews: item.total,
+            positiveReviews: item.positive,
+            negativeReviews: item.negative,
+            positiveRate,
+            negativeRate,
+            positiveNegativeRatio, // Thêm tỷ lệ tích cực / tiêu cực
+            name: restaurant.name,
+            address: restaurant.address,
+            type: restaurant.type,
+            rating: restaurant.rating,
+            image_url: restaurant.image_url,
+            description: restaurant.description,
+            openTime: restaurant.openTime,
+            closeTime: restaurant.closeTime,
+            price_per_table: restaurant.price_per_table
+          };
+        }
+
+        return null;  // Nếu tỷ lệ tích cực không cao hơn tiêu cực thì không trả về nhà hàng này
       })
   );
 
   // Sắp xếp theo tỷ lệ tích cực / tiêu cực
   return recommendations
-    .filter((item) => item !== null)
-    .sort((a, b) => b.positiveNegativeRatio - a.positiveNegativeRatio);
+    .filter((item) => item !== null)  // Lọc các nhà hàng không hợp lệ
+    .sort((a, b) => b.positiveNegativeRatio - a.positiveNegativeRatio);  // Sắp xếp theo tỷ lệ tích cực / tiêu cực
 }
