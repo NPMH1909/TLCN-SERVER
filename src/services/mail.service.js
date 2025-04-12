@@ -110,7 +110,7 @@ cron.schedule("*/600 * * * *", async () => {
         subject: `📅 Nhắc nhở đặt bàn tại ${restaurantName}`,
         html: message
       });
-      console.log("📩 Email gửi thành công:", result);
+     // console.log("📩 Email gửi thành công:", result);
       await OrderModel.updateOne({ _id: booking._id }, { $set: { reminder_sent: true } });
 
     } catch (error) {

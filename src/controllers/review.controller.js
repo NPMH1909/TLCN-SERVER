@@ -6,7 +6,7 @@ import ReviewModel from "../models/reviews.model.js";
 
 
 
-const createReviewController = async (req, res) => {
+const createReviewController = async (req, res, next) => {
   try {
     await uploadFiles(req, res, async () => {
       const image = req.file
@@ -79,7 +79,7 @@ const deleteReviewController = async (req, res, next) => {
 };
 
 
-const getAllReviewsController = async (req, res) => {
+const getAllReviewsController = async (req, res, next) => {
   try {
     const { restaurant_id } = req.params;
     const { page = 1, limit = 10 } = req.query;

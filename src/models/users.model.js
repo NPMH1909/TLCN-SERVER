@@ -9,8 +9,13 @@ const User = new mongoose.Schema({
   role: { type: String, required: true },
   salt: { type: String, required: true },
   otp: {type: String},
-  viewedRestaurants: [{ type: Schema.Types.ObjectId, ref: "Restaurants" }], // Danh sách nhà hàng đã xem
-  bookedRestaurants: [{ type: Schema.Types.ObjectId, ref: "Restaurants" }], // Danh sách nhà hàng đã đặt bàn
+  viewedRestaurants: [
+    {
+      restaurant: { type: Schema.Types.ObjectId, ref: "Restaurants" },
+      lastViewed: { type: Date, default: Date.now },
+    }
+  ],
+bookedRestaurants: [{ type: Schema.Types.ObjectId, ref: "Restaurants" }], // Danh sách nhà hàng đã đặt bàn
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null }

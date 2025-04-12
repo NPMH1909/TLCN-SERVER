@@ -54,6 +54,19 @@ const getSuggestedRestaurantsForUser  = async (req, res, next) => {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
   }
 }
+const getRecentlyViewedRestaurants  = async (req, res, next) => {
+  // #swagger.tags=['Restaurant']
+  try {
+    const userId = req.user.id
+    console.log('userId', userId)
+    const data = await RestaurantService.getRecentlyViewedRestaurants(userId);
+    next(new Response(HttpStatusCode.Ok, 'Thành Công', data).resposeHandler(res));
+  } catch (error) {
+    next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
+  }
+}
+
+
 
 const getNearbyRestaurants   = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
@@ -236,5 +249,5 @@ export const RestaurantController = {
   getAllRestaurantWithPromotions,
   getSuggestedRestaurantsForUser,
   getNearbyRestaurants,
-
+  getRecentlyViewedRestaurants
 }

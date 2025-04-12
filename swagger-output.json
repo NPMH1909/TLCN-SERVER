@@ -1896,6 +1896,13 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2311,6 +2318,36 @@
         }
       }
     },
+    "/videos/most-liked/{restaurantId}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "restaurantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/reviews/create": {
       "post": {
         "description": "",
@@ -2668,6 +2705,28 @@
         "responses": {
           "default": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/recommendation/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

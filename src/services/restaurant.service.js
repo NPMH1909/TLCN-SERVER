@@ -762,15 +762,43 @@ const getDistrictsByProvince = async (provinceCode) => {
 
 const updateUserViewHistory = async (userId, restaurantId) => {
   try {
+    const now = new Date();
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      console.log("restaurantId không hợp lệ");
+      return;
+    }
+
+    // Bước 1: Xoá restaurant cũ nếu đã tồn tại
     await UserModel.findByIdAndUpdate(
       userId,
-      { $addToSet: { viewedRestaurants: restaurantId } }, // Thêm nếu chưa có
+      {
+        $pull: { viewedRestaurants: { restaurant: restaurantId } }
+      }
+    );
+
+    // Bước 2: Thêm mới vào đầu danh sách
+    await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        $push: {
+          viewedRestaurants: {
+            $each: [{ restaurant: restaurantId, lastViewed: now }],
+            $position: 0 // thêm vào đầu mảng
+          }
+        }
+      },
       { new: true }
     );
+
+    console.log("Cập nhật lịch sử thành công");
+
   } catch (error) {
     console.error("Lỗi khi cập nhật lịch sử truy cập:", error);
   }
 };
+
+
 const suggestRestaurantsForUser = async (userId) => {
   try {
     // Lấy thông tin user và kiểm tra tồn tại
@@ -806,6 +834,38 @@ const suggestRestaurantsForUser = async (userId) => {
     return [];
   }
 };
+
+const getRecentlyViewedRestaurants = async (userId, limit = 20) => {
+  try {
+    const user = await UserModel.findById(userId)
+      .populate("viewedRestaurants.restaurant")
+      .lean();
+
+    // Kiểm tra xem user.viewedRestaurants có tồn tại và có dữ liệu hay không
+    console.log("User viewedRestaurants:", user.viewedRestaurants);
+
+    if (!user || !user.viewedRestaurants || user.viewedRestaurants.length === 0) {
+      console.log("Không có nhà hàng đã xem.");
+      return [];
+    }
+
+    const sorted = user.viewedRestaurants
+      .sort((a, b) => new Date(b.lastViewed) - new Date(a.lastViewed))
+      .slice(0, limit)
+      .map((entry) => entry.restaurant);
+
+    console.log("Sorted restaurants:", sorted);
+
+    return sorted.filter(Boolean);
+  } catch (error) {
+    console.error("Lỗi khi lấy nhà hàng đã xem gần đây:", error);
+    return [];
+  }
+};
+
+
+
+
 const findNearbyRestaurants = async (lat, lng, maxDistance = 10000) => {
   try {
     const restaurants = await RestaurantModel.find({
@@ -848,7 +908,8 @@ const getCoordinates = async (address) => {
 
 export const RestaurantService = {
   updateUserViewHistory,
-  getProvinces,getDistrictsByProvince,
+  getProvinces,
+  getDistrictsByProvince,
   getAllRestaurant,
   getRestaurantById,
   createRestaurant,
@@ -867,5 +928,6 @@ export const RestaurantService = {
   suggestRestaurantsForUser,
   findNearbyRestaurants,
   getCoordinates,
-  getTopRatedRestaurants
+  getTopRatedRestaurants,
+  getRecentlyViewedRestaurants
 }

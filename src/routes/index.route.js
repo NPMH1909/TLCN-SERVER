@@ -6,6 +6,7 @@ import LogRouter from './log.route.js'
 import MenuRouter from './menu.route.js'
 import { OrderRouter } from './order.route.js'
 import PromotionRouter from './promotion.route.js'
+import Recommendation from './recommendation.route.js'
 import RestaurantRouter from './restaurant.route.js'
 import ReviewRouter from './review.route.js'
 import { StatRouter } from './stat.route.js'
@@ -34,7 +35,7 @@ const route = (app) => {
   app.use('/chatbot', ChatBox)
 
   app.use('/stats', requireApiKey, authenticationAdmin, StatRouter)
-
+  app.use('/recommendation', Recommendation)
   app.use('/', UserRouter)
 }
 

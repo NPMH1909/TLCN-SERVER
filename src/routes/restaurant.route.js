@@ -51,6 +51,8 @@ RestaurantRouter.get('/staff', requireApiKey, authenticationStaff, RestaurantCon
 RestaurantRouter.get('/provinces', RestaurantController.getProvinces);
 RestaurantRouter.get('/districts/:provinceCode', RestaurantController.getDistrictsByProvince);
 RestaurantRouter.get('/suggested-restaurants', requireApiKey, RestaurantController.getSuggestedRestaurantsForUser);
+RestaurantRouter.get('/rencently-restaurants', requireApiKey, RestaurantController.getRecentlyViewedRestaurants);
+
 RestaurantRouter.get('/nearby', RestaurantController.getNearbyRestaurants);
 
 export default RestaurantRouter
