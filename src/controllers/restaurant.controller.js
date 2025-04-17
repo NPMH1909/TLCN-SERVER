@@ -10,7 +10,7 @@ import { StaffService } from '../services/staff.service.js'
 const getAllRestaurant = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
   try {
-    const { sort, page, size, field, searchTerm, priceRange ,  provinceCode='', type='', 
+    const { sort, page, size, field, searchTerm, priceRange ,  provinceCode='', type='', reputable, 
       districtCode = '', 
       detail = ''} = req.query; // Thêm priceRange vào đây
     const data = await RestaurantService.getAllRestaurant(
@@ -24,6 +24,7 @@ const getAllRestaurant = async (req, res, next) => {
       districtCode,
       detail,
       type,
+      reputable,
     );
     next(new Response(HttpStatusCode.Ok, 'Thành Công', data.data, data.info).resposeHandler(res));
   } catch (error) {

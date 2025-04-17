@@ -294,6 +294,7 @@ const getUserOrders = async (userId, page = 1, size = 5) => {
       $project: {
         _id: 1,
         restaurant: "$restaurant.name", // Lấy tên nhà hàng
+        restaurant_id:1,
         total_people: 1,
         orderCode: 1,
         total: 1,
@@ -357,6 +358,7 @@ const getOrderById = async (id) => {
         _id: 1,
         user: '$user',
         restaurant: '$restaurant',
+        restaurant_id: 1,
         total_people: 1,
         name: 1,
         phone_number: 1,

@@ -60,7 +60,9 @@ export async function getRestaurantRecommendations() {
       .map(async (item) => {
         const restaurant = await RestaurantModel.findById(item.restaurant_id);
         if (!restaurant) return null;
-
+        if (restaurant.rating < 4) {
+          return null;
+        }
         const positiveRate = item.total > 0 ? (item.positive / item.total) : 0;
         const negativeRate = item.total > 0 ? (item.negative / item.total) : 0;
 

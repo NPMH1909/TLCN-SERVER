@@ -556,6 +556,28 @@
         }
       }
     },
+    "/restaurants/rencently-restaurants": {
+      "get": {
+        "tags": [
+          "Restaurant"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/restaurants/nearby": {
       "get": {
         "tags": [

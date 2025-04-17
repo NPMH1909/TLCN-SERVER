@@ -18,7 +18,8 @@ const getAllRestaurant = async (
   provinceCode = '', 
   districtCode = '', 
   detail = '',
-  type = '' // Thêm tham số type để lọc theo loại nhà hàng
+  type = '', // Thêm tham số type để lọc theo loại nhà hàng
+  isReputable
 ) => {
   const regex = new RegExp(searchTerm, 'i');
   
@@ -59,7 +60,10 @@ const getAllRestaurant = async (
   if (type) {
     matchConditions.type = type;
   }
-
+  if (isReputable) {
+    matchConditions.rating = { $gte: 4.0 };
+  }
+  
   const restaurants = await RestaurantModel.aggregate([
     { $match: matchConditions },
     {
