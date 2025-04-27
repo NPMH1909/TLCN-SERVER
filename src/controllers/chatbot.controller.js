@@ -1,19 +1,6 @@
 import { detectIntent } from "../services/chatbot.service.js";
 import { RestaurantService } from "../services/restaurant.service.js";
 
-// export const chatbotResponse = async (req, res) => {
-//   try {
-//     const { message } = req.body;
-//     if (!message) {
-//       return res.status(400).json({ error: "Message is required" });
-//     }
-
-//     const response = await detectIntent(message);
-//     res.json({ reply: response.fulfillmentText });
-//   } catch (error) {
-//     res.status(500).json({ error: "Internal Server Error", details: error.message });
-//   }
-// };
 
 export const chatbotResponse = async (req, res) => {
   try {

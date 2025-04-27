@@ -8,12 +8,12 @@ const VideoRouter = express.Router();
 VideoRouter.post('/add', uploadVideoMiddleware, VideoController.addVideo);
 
 // Route lấy tất cả video
-VideoRouter.get('/', VideoController.getVideos);
+VideoRouter.get('/', requireApiKey, VideoController.getVideos);
 VideoRouter.get('/user', requireApiKey, authenticationAdmin, VideoController.getVideosByUserId);
 VideoRouter.put('/update/:videoId',uploadVideoMiddleware, VideoController.updateVideo);
 VideoRouter.delete('/delete/:videoId', VideoController.deleteVideo);
 // Route cập nhật lượt xem video
 // VideoRouter.put('/:videoId/view', VideoController.incrementViewCount);
 VideoRouter.get("/most-liked/:restaurantId", VideoController.getMostLikedVideo);
-
+VideoRouter.post("/like/:videoId",requireApiKey, VideoController.likeVideo);
 export default VideoRouter

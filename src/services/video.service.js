@@ -1,25 +1,26 @@
 import VideoModel from '../models/videos.model.js';
 import CommentModel from '../models/comment.model.js';
 import { RestaurantModel } from '../models/restaurants.model.js';
+import mongoose from 'mongoose';
 
 const addVideo = async (videoData) => {
   const newVideo = new VideoModel(videoData);
   return await newVideo.save();
 };
 
-const getVideos = async (restaurantName = "") => {
+const getVideos = async (restaurantName = "", userId = "") => {
   // Nếu không có tên nhà hàng, trả toàn bộ video
   let restaurants = [];
   if (restaurantName) {
-    // Tìm nhà hàng theo tên
     restaurants = await RestaurantModel.find({
-      name: { $regex: restaurantName, $options: "i" }, // Tìm kiếm không phân biệt hoa thường
+      name: { $regex: restaurantName, $options: "i" }, 
     });
   }
+
   const videos = await VideoModel.find(
     restaurantName && restaurants.length > 0
-      ? { restaurant: { $in: restaurants.map((r) => r._id) } } // Lọc theo nhà hàng
-      : {} // Không có điều kiện nếu không tìm theo tên
+      ? { restaurant: { $in: restaurants.map((r) => r._id) } }
+      : {}
   ).sort({ createdAt: -1 });
 
   if (videos.length === 0) {
@@ -30,12 +31,19 @@ const getVideos = async (restaurantName = "") => {
     videos.map(async (video) => {
       const comments = await CommentModel.find({ video: video._id });
       const restaurant = await RestaurantModel.findById(video.restaurant);
-      return { ...video.toObject(), comments, restaurantName: restaurant.name };
+      const isLiked = userId ? video.likedUsers.includes(userId) : false;
+      return { 
+        ...video.toObject(), 
+        comments, 
+        restaurantName: restaurant.name,
+        isLiked,
+      };
     })
   );
 
   return videoWithComments;
 };
+
 
 
 const getVideosByUserId = async (userId, page = 1, limit = 10) => {
@@ -110,26 +118,34 @@ const getMostLikedVideo = async (restaurantId) => {
 
   return video;
 };
-const likeVideo = async ({videoId, userId}) => {
+
+const likeVideo = async ({ videoId, userId }) => {
   const video = await VideoModel.findById(videoId);
   if (!video) throw new Error('Video not found');
 
+  // Chuyển userId thành ObjectId nếu nó là chuỗi
+  const userObjectId =new mongoose.Types.ObjectId(userId);
+
   // Kiểm tra xem user đã like chưa
-  const hasLiked = video.likedUsers.includes(userId);
-  
+  const hasLiked = video.likedUsers.some(id => id.equals(userObjectId)); // Sử dụng .equals() để so sánh ObjectId
+
   if (hasLiked) {
     // Nếu đã like thì unlike (bỏ like)
     video.likes -= 1;
-    video.likedUsers = video.likedUsers.filter(id => id.toString() !== userId);
+    video.likedUsers = video.likedUsers.filter(id => !id.equals(userObjectId)); // Xóa userId ra khỏi mảng
+    console.log('Updated likedUsers after unlike:', video.likedUsers);
   } else {
     // Nếu chưa like thì like
     video.likes += 1;
-    video.likedUsers.push(userId);
+    video.likedUsers.push(userObjectId);
+    console.log('Updated likedUsers after like:', video.likedUsers);
   }
 
+  // Lưu thay đổi vào cơ sở dữ liệu
   await video.save();
   return video;
 };
+
 
 
 export const VideoService = {

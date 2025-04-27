@@ -33,7 +33,8 @@ const addVideo = async (req, res) => {
 const getVideos = async (req, res) => {
   try {
     const {restaurantName} = req.query
-    const videos = await VideoService.getVideos(restaurantName);
+    const userId = req.user.id;
+    const videos = await VideoService.getVideos(restaurantName, userId);
     res.status(200).json(videos);
   } catch (error) {
     console.error(error);

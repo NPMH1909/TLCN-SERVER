@@ -7,6 +7,15 @@ import { CommonUtils } from '../utils/common.util.js'
 import { LogService } from '../services/log.service.js'
 import { StaffService } from '../services/staff.service.js'
 
+const getAllTypes = async (req, res, next) => {
+  try {
+    const types = await RestaurantService.getAllTypes(); // Gọi service
+    next(new Response(HttpStatusCode.Ok, 'Thành Công', types).resposeHandler(res));
+  } catch (error) {
+    next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
+  }
+};
+
 const getAllRestaurant = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
   try {
@@ -48,8 +57,9 @@ const getSuggestedRestaurantsForUser  = async (req, res, next) => {
   // #swagger.tags=['Restaurant']
   try {
     const userId = req.user.id
-    console.log('userId', userId)
-    const data = await RestaurantService.suggestRestaurantsForUser(userId);
+    const {   provinceCode='', districtCode = ''} = req.query; 
+    const data = await RestaurantService.suggestRestaurantsForUser(userId, provinceCode,
+      districtCode,);
     next(new Response(HttpStatusCode.Ok, 'Thành Công', data).resposeHandler(res));
   } catch (error) {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res));
@@ -250,5 +260,6 @@ export const RestaurantController = {
   getAllRestaurantWithPromotions,
   getSuggestedRestaurantsForUser,
   getNearbyRestaurants,
-  getRecentlyViewedRestaurants
+  getRecentlyViewedRestaurants,
+  getAllTypes
 }

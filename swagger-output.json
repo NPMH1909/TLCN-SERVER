@@ -195,6 +195,13 @@
             }
           },
           {
+            "name": "reputable",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "districtCode",
             "in": "query",
             "schema": {
@@ -544,6 +551,20 @@
           {
             "name": "authorization",
             "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "provinceCode",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "districtCode",
+            "in": "query",
             "schema": {
               "type": "string"
             }

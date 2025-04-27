@@ -52,7 +52,7 @@ RestaurantRouter.get('/provinces', RestaurantController.getProvinces);
 RestaurantRouter.get('/districts/:provinceCode', RestaurantController.getDistrictsByProvince);
 RestaurantRouter.get('/suggested-restaurants', requireApiKey, RestaurantController.getSuggestedRestaurantsForUser);
 RestaurantRouter.get('/rencently-restaurants', requireApiKey, RestaurantController.getRecentlyViewedRestaurants);
-
+RestaurantRouter.get('/types', RestaurantController.getAllTypes)
 RestaurantRouter.get('/nearby', RestaurantController.getNearbyRestaurants);
 
 export default RestaurantRouter

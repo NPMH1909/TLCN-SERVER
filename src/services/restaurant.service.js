@@ -8,6 +8,17 @@ import MenuItem from '../models/menus.model.js'
 import { ConflictError } from '../errors/conflict.error.js'
 import { UserModel } from '../models/users.model.js'
 
+const getAllTypes = async () => {
+  try {
+    // Truy vấn các loại nhà hàng khác nhau từ trường 'type' mà không trùng lặp
+    const types = await RestaurantModel.distinct('type');
+    return types;
+  } catch (error) {
+    console.error('Error while fetching restaurant types:', error);
+    throw new Error('Could not fetch restaurant types');
+  }
+};
+
 const getAllRestaurant = async (
   page = 1, 
   size = 5, 
@@ -803,41 +814,57 @@ const updateUserViewHistory = async (userId, restaurantId) => {
 };
 
 
-const suggestRestaurantsForUser = async (userId) => {
+const suggestRestaurantsForUser = async (userId, provinceCode = '', districtCode = '') => {
   try {
-    // Lấy thông tin user và kiểm tra tồn tại
     const user = await UserModel.findById(userId).populate("viewedRestaurants");
     if (!user) return [];
 
-    // Lấy danh sách ID nhà hàng đã xem gần đây
     const viewedRestaurantIds = user.viewedRestaurants?.map((r) => r._id) || [];
-
-    // Số lượng nhà hàng đã xem gần nhất, tối đa 4
     const numViewed = Math.min(viewedRestaurantIds.length, 4);
-    const numPopular = 8 - numViewed; // Số nhà hàng phổ biến cần lấy để đủ 8
+    const numPopular = 8 - numViewed;
 
     // Lấy danh sách nhà hàng đã xem gần đây (nếu có)
     const viewedRestaurants = await RestaurantModel.find({
       _id: { $in: viewedRestaurantIds },
     })
-      .sort({ lastViewed: -1 }) // Lấy theo thời gian xem gần nhất
+      .sort({ lastViewed: -1 })
       .limit(numViewed);
 
-    // Lấy danh sách nhà hàng phổ biến (không trùng với danh sách đã xem)
+    // Điều kiện khu vực nếu có
+    const locationFilter = {};
+    if (provinceCode) locationFilter["address.provinceCode"] = provinceCode;
+    if (districtCode) locationFilter["address.districtCode"] = districtCode;
+
+    // Gợi ý nhà hàng phổ biến cùng khu vực (nếu có)
     const popularRestaurants = await RestaurantModel.find({
-      _id: { $nin: viewedRestaurantIds }, // Loại trừ nhà hàng đã xem
+      _id: { $nin: viewedRestaurantIds },
+      ...locationFilter,
     })
-      .sort({ rating: -1,  bookingCount: -1 }) // Ưu tiên nhà hàng phổ biến
+      .sort({ rating: -1, bookingCount: -1 })
       .limit(numPopular);
 
-    // Kết hợp hai danh sách
-    return [...viewedRestaurants, ...popularRestaurants];
+    // Nếu không đủ số lượng, lấy thêm nhà hàng phổ biến toàn bộ
+    let totalSuggestions = [...viewedRestaurants, ...popularRestaurants];
 
+    if (totalSuggestions.length < 8) {
+      const moreRestaurants = await RestaurantModel.find({
+        _id: {
+          $nin: [...viewedRestaurantIds, ...popularRestaurants.map((r) => r._id)],
+        },
+      })
+        .sort({ rating: -1, bookingCount: -1 })
+        .limit(8 - totalSuggestions.length);
+
+      totalSuggestions = [...totalSuggestions, ...moreRestaurants];
+    }
+
+    return totalSuggestions;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách nhà hàng gợi ý:", error);
     return [];
   }
 };
+
 
 const getRecentlyViewedRestaurants = async (userId, limit = 20) => {
   try {
@@ -933,5 +960,6 @@ export const RestaurantService = {
   findNearbyRestaurants,
   getCoordinates,
   getTopRatedRestaurants,
-  getRecentlyViewedRestaurants
+  getRecentlyViewedRestaurants,
+  getAllTypes
 }
