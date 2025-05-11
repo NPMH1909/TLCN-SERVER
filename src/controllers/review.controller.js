@@ -16,35 +16,39 @@ const createReviewController = async (req, res, next) => {
           }
         : null;
 
-      const { restaurant_id, content, parent_id } = req.body;
+      const { restaurant_id, content, parent_id, rating } = req.body;
 
       const reviewData = {
         restaurant_id,
         user_id: req.user.id, // Lấy ID người dùng từ token
         content,
         parent_id: parent_id || null, // Gán parent_id nếu có
+        rating
       };
 
       // Thêm image nếu có
       if (image) {
         reviewData.image = image;
       }
-      // Nếu parent_id có giá trị, kiểm tra bình luận cha
+
+      // Nếu có parent_id, kiểm tra bình luận cha
       if (parent_id) {
         const parentReview = await ReviewService.getReviewById(parent_id);
-
         if (!parentReview) {
-          next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
+          return next(new Response(500, 'Parent review not found', null).resposeHandler(res));
         }
       }
 
+      // Tạo review và phân tích cảm xúc
       const result = await ReviewService.createReview(reviewData);
-      return new Response(HttpStatusCode.Ok, 'Đăng nhập thành công', result).resposeHandler(res)
-     
+
+      // Trả về kết quả sau khi tạo review
+      return new Response(200, 'Review submitted successfully', result).resposeHandler(res);
     });
   } catch (error) {
-       next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
-   }
+    console.error('Error in createReviewController:', error);
+    return next(new Response(error.statusCode || 500, error.message, null).resposeHandler(res));
+  }
 };
 
 

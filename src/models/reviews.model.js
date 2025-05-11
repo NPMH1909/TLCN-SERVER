@@ -10,12 +10,13 @@ const ReviewSchema = new Schema(
       id: { type: String }
     },
     content: { type: String, required: true },
-    parent_id: { type: Schema.ObjectId, default: null }, // Thêm trường này
+    parent_id: { type: Schema.ObjectId, default: null }, 
     created_at: { type: Date, required: true, default: Date.now },
     updated_at: { type: Date, required: true, default: Date.now },
     deleted_at: { type: Date, default: null },
-    sentiment: { type: String, enum: ['positive', 'negative'], default: 'positive' }, // Thêm trường sentiment
-
+    sentiment: { type: String, enum: ['positive', 'negative'], default: 'positive' }, 
+    isFlagged: { type: Boolean, default: false },
+    rating: {type: Number, default:0}
   },
   { timestamps: true }
 );

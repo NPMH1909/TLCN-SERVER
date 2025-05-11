@@ -100,3 +100,63 @@ export async function getRestaurantRecommendations() {
     .filter((item) => item !== null)  // Lọc các nhà hàng không hợp lệ
     .sort((a, b) => b.positiveNegativeRatio - a.positiveNegativeRatio);  // Sắp xếp theo tỷ lệ tích cực / tiêu cực
 }
+
+export const analyzeReview = async (content, rating) => {
+  let sentiment = 'positive';
+  let isFlagged = false;
+
+  if (content && content.trim() !== '') {
+    try {
+      const translatedContent = await translate(content, { from: 'vi', to: 'en' });
+      const result = winkSentiment(translatedContent);
+      const score = result.score;
+
+      sentiment = score < 0 ? 'negative' : 'positive';
+
+      if ((rating >= 4 && sentiment === 'negative') ||
+          (rating <= 2 && sentiment === 'positive')) {
+        isFlagged = true;
+      }
+    } catch (err) {
+      console.error('Sentiment analysis failed:', err.message);
+    }
+  }
+
+  return { sentiment, isFlagged };
+};
+
+export const checkDuplicateReview = async (reviewData) => {
+  const { user_id, restaurant_id, content } = reviewData;
+  const now = new Date();
+
+  // 1. Nội dung giống trong vòng 10 phút ở cùng nhà hàng
+  const duplicate = await ReviewModel.findOne({
+    user_id,
+    restaurant_id,
+    content: { $regex: new RegExp(`^${escapeRegex(content.trim())}$`, 'i') },
+    createdAt: { $gte: new Date(now.getTime() - 10 * 60 * 1000) },
+  });
+
+  if (duplicate) {
+    return { isSpam: true, reason: 'Duplicate content in short time' };
+  }
+
+  // 2. Nội dung giống ở nhà hàng khác trong vòng 1 giờ
+  const spamAcrossRestaurants = await ReviewModel.findOne({
+    user_id,
+    restaurant_id: { $ne: restaurant_id },
+    content: { $regex: new RegExp(`^${escapeRegex(content.trim())}$`, 'i') },
+    createdAt: { $gte: new Date(now.getTime() - 60 * 60 * 1000) },
+  });
+
+  if (spamAcrossRestaurants) {
+    return { isSpam: true, reason: 'Same content across restaurants' };
+  }
+
+  return { isSpam: false };
+};
+
+// Escape special regex characters
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
