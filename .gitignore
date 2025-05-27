@@ -132,4 +132,3 @@ dist
 
 
 git rm --cached dialogflow-key.json
-echo "dialogflow-key.json" >> .gitignore
