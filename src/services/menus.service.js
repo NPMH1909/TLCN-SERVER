@@ -305,5 +305,5 @@ export const MenuService = {
   countMenu,
   getAllMenuItemsByUserId,
   getMenuByRestaurant,
-  getMenuByRestaurantForStaff
+  getMenuByRestaurantForStaff,
 }

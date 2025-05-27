@@ -60,6 +60,7 @@
     "server": "file:",
     "socket.io": "^4.7.4",
     "stopword": "^3.1.4",
+    "string-similarity": "^4.0.4",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "translate": "^3.0.1",

@@ -2,10 +2,9 @@ import dialogflow from "@google-cloud/dialogflow";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
-const projectId = "bookingrestaurant-453309"; // Thay bằng Project ID của bạn
+const projectId = "bookingrestaurant-453309";
 const keyPath = path.resolve("dialogflow-key.json");
 
-// Khởi tạo session Client
 const sessionClient = new dialogflow.SessionsClient({ keyFilename: keyPath });
 
 export const detectIntent = async (text) => {

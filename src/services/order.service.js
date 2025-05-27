@@ -15,6 +15,7 @@ import { StaffModel } from '../models/staff.model.js'
 import PayOS from '@payos/node'
 import { momoConfig } from '../configs/momo.config.js'
 import crypto from "crypto";
+import MenuItem from '../models/menus.model.js'
 
 const getAllOrder = async (page = 1, size = 5) => {
   const orders = await OrderModel.aggregate([
@@ -475,6 +476,12 @@ const createOrder = async (
     amount_received: Number(total).toFixed(0),
     email,
   });
+  for (const item of menu_list) {
+    await MenuItem.updateOne(
+      { _id: item._id }, // sử dụng _id từ item
+      { $inc: { sold: item.quantity } } // cộng thêm số lượng đã đặt
+    );
+  }
 
   if (payment === "CREDIT_CARD") {
     const paymentLinkRes = await payOrder({ orderCode: order.orderCode, total });

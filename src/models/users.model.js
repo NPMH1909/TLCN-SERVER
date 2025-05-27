@@ -15,10 +15,17 @@ const User = new mongoose.Schema({
       lastViewed: { type: Date, default: Date.now },
     }
   ],
-bookedRestaurants: [{ type: Schema.Types.ObjectId, ref: "Restaurants" }], // Danh sách nhà hàng đã đặt bàn
+  bookedRestaurants: [{ type: Schema.Types.ObjectId, ref: "Restaurants" }], // Danh sách nhà hàng đã đặt bàn
+  favorites: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Restaurants',
+    },
+  ],
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
   deleted_at: { type: Date, default: null }
 })
+
 const UserModel = mongoose.model('User', User)
 export { UserModel }

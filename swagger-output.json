@@ -579,9 +579,6 @@
     },
     "/restaurants/rencently-restaurants": {
       "get": {
-        "tags": [
-          "Restaurant"
-        ],
         "description": "",
         "parameters": [
           {
@@ -1926,6 +1923,28 @@
         }
       }
     },
+    "/menus/bestseller": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
     "/menus/{restaurantId}": {
       "get": {
         "description": "",
@@ -2471,6 +2490,9 @@
                   },
                   "parent_id": {
                     "example": "any"
+                  },
+                  "rating": {
+                    "example": "any"
                   }
                 }
               }
@@ -2814,11 +2836,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "500": {
-            "description": "Internal Server Error"
+          "default": {
+            "description": ""
           }
         }
       }
@@ -3195,6 +3214,52 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/favorites": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/favorites/{restaurantId}": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "restaurantId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }

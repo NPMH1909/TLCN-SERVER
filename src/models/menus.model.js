@@ -18,6 +18,7 @@ const menuItemSchema = new mongoose.Schema(
     unit: { type: String, required: true },
     price: { type: Number, required: true },
     discount: { type: Number, default: 0 },
+    sold: { type: Number, default: 0 },
     restaurant_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurants' },
     created_at: { type: Date, required: true, default: Date.now },
     updated_at: { type: Date, required: true, default: Date.now },

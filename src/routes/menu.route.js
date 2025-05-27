@@ -21,6 +21,7 @@ MenuRouter.get(
   MenuController.getAllMenuItemsByUserId
 )
 MenuRouter.get('/menu/:id', handleValidationErrors, MenuController.getMenuItemById)
+MenuRouter.get('/bestseller', MenuController.getBestSellingMenuItems)
 
 MenuRouter.get('/:restaurantId', handleValidationErrors, MenuController.getMenuByRestaurant)
 MenuRouter.get('/staff/:restaurantId', handleValidationErrors, MenuController.getMenuByRestaurantForStaff)

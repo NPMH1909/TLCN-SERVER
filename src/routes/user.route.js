@@ -25,10 +25,13 @@ UserRouter.get('/users', requireApiKey, authenticationAdmin, UserController.getA
 UserRouter.put('/user/update', requireApiKey, UserController.updateUserById)
 
 UserRouter.delete('/:id', requireApiKey, authenticationAdmin, UserController.deleteUser)
-UserRouter.get('/staff',requireApiKey, UserController.getStaffById)
+UserRouter.get('/staff', requireApiKey, UserController.getStaffById)
 
 UserRouter.post('/mailrs', UserController.sendResetPasswordEmail)
 UserRouter.put('/password', UserController.resetPassword)
 
 UserRouter.post('/search', UserGetAnyFieldValidation, handleValidationErrors, UserController.findUsersByAnyField)
+UserRouter.get('/favorites', requireApiKey, UserController.getFavorites)
+UserRouter.post('/favorites/:restaurantId', requireApiKey, UserController.toggleFavorite)
+
 export default UserRouter

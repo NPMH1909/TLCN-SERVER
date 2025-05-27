@@ -5,6 +5,7 @@ import { MailService } from '../services/mail.service.js'
 import { UserService } from '../services/user.service.js'
 import { CommonUtils } from '../utils/common.util.js'
 import { LogService } from '../services/log.service.js'
+import { UserModel } from '../models/users.model.js'
 
 const loginUser = async (req, res, next) => {
   try {
@@ -185,6 +186,29 @@ const findUsersByAnyField = async (req, res, next) => {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
   }
 }
+
+// POST /api/favorites/:restaurantId
+const toggleFavorite = async (req, res) => {
+  const userId = req.user.id;
+  const { restaurantId } = req.params;
+
+  const user = await UserModel.findById(userId);
+  const index = user.favorites.indexOf(restaurantId);
+
+  if (index !== -1) {
+    user.favorites.splice(index, 1); // Xóa
+  } else {
+    user.favorites.push(restaurantId); // Thêm
+  }
+
+  await user.save();
+  res.json({ success: true, favorites: user.favorites });
+};
+const getFavorites = async (req, res) => {
+  const user = await UserModel.findById(req.user.id).populate('favorites');
+  res.json({ favorites: user.favorites });
+};
+
 export const UserController = {
   loginUser,
   loginAdmin,
@@ -200,5 +224,7 @@ export const UserController = {
   updateUser,
   updateUserById,
   changePassword,
-  getStaffById
+  getStaffById,
+  toggleFavorite,
+  getFavorites
 }

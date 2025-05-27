@@ -66,7 +66,6 @@ const getSuggestedRestaurantsForUser  = async (req, res, next) => {
   }
 }
 const getRecentlyViewedRestaurants  = async (req, res, next) => {
-  // #swagger.tags=['Restaurant']
   try {
     const userId = req.user.id
     console.log('userId', userId)

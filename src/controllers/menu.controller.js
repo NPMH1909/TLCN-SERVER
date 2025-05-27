@@ -3,6 +3,7 @@ import { MenuService } from '../services/menus.service.js'
 import { BadRequestError } from '../errors/badRequest.error.js'
 import { HttpStatusCode } from 'axios'
 import { LogService } from '../services/log.service.js'
+import MenuItem from '../models/menus.model.js'
 const createMenuItem = async (req, res, next) => {
   try {
     const image = {
@@ -39,6 +40,7 @@ const getAllMenuItemsByUserId = async (req, res, next) => {
 const getMenuItemById = async (req, res, next) => {
   try {
     const item = await MenuService.getMenuItemById(req.params.id)
+    console.log('item', item)
     next(new Response(HttpStatusCode.Ok, 'Thành Công', item).resposeHandler(res))
   } catch (error) {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
@@ -112,7 +114,28 @@ const countMenu = async (req, res, next) => {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
   }
 }
+const getBestSellingMenuItems = async (req, res) => {
+  try {
+    const bestSellers = await MenuItem.find({ deleted_at: null })
+      .sort({ sold: -1 })
+      .limit(8)
+      .populate({
+        path: 'restaurant_id',
+        select: 'name _id' // Chỉ lấy tên và id nhà hàng
+      });
 
+    res.status(200).json({
+      success: true,
+      data: bestSellers
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy món nổi bật kèm nhà hàng:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server khi lấy danh sách món ăn nổi bật",
+    });
+  }
+};
 export const MenuController = {
   createMenuItem,
   getAllMenuItems,
@@ -123,5 +146,6 @@ export const MenuController = {
   countMenu,
   getAllMenuItemsByUserId,
   getMenuByRestaurant,
-  getMenuByRestaurantForStaff
+  getMenuByRestaurantForStaff,
+  getBestSellingMenuItems
 }
