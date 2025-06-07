@@ -28,8 +28,8 @@ const loginAdmin = async (req, res, next) => {
 const changePassword = async (req, res, next) => {
   try {
     const userId = req.user.id
-    const{oldPassword, newPassword} = req.body
-    const result = await UserService.changePassword({userId, oldPassword, newPassword})
+    const { oldPassword, newPassword } = req.body
+    const result = await UserService.changePassword({ userId, oldPassword, newPassword })
     next(new Response(HttpStatusCode.Ok, 'Đăng nhập thành công', result).resposeHandler(res))
   } catch (error) {
     next(new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res))
@@ -44,7 +44,7 @@ const register = async (req, res, next) => {
     const result = await UserService.register(req.body)
     next(new Response(HttpStatusCode.Created, 'Đăng ký thành công', result).resposeHandler(res))
   } catch (error) {
-     return new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res)
+    return new Response(error.statusCode || HttpStatusCode.InternalServerError, error.message, null).resposeHandler(res)
   }
 }
 const getUserById = async (req, res, next) => {
@@ -187,7 +187,7 @@ const findUsersByAnyField = async (req, res, next) => {
   }
 }
 
-// POST /api/favorites/:restaurantId
+// POST /api//:restaurantId
 const toggleFavorite = async (req, res) => {
   const userId = req.user.id;
   const { restaurantId } = req.params;

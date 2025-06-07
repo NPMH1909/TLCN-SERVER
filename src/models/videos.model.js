@@ -4,29 +4,29 @@ import  mongoose from "mongoose"
 const videoSchema = new mongoose.Schema(
   {
     videoUrl: {
-      type: String, // URL của video (có thể là URL từ Cloudinary hoặc dịch vụ lưu trữ khác)
+      type: String, 
       required: true,
     },
     title: {
-      type: String, // Tiêu đề video
+      type: String, 
       required: true,
       trim: true,
     },
     description: {
-      type: String, // Mô tả ngắn gọn cho video
+      type: String, 
       required: true,
       trim: true,
     },
     likes: {
-      type: Number, // Số lượt thích video
+      type: Number, 
       default: 0,
     },
     views: {
-      type: Number, // Số lượt xem video
+      type: Number, 
       default: 0,
     },
     createdAt: {
-      type: Date, // Thời gian tạo video
+      type: Date, 
       default: Date.now,
     },
     //comment: {type: String,required: true, unique: true}

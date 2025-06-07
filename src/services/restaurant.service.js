@@ -10,7 +10,6 @@ import { UserModel } from '../models/users.model.js'
 
 const getAllTypes = async () => {
   try {
-    // Truy vấn các loại nhà hàng khác nhau từ trường 'type' mà không trùng lặp
     const types = await RestaurantModel.distinct('type');
     return types;
   } catch (error) {
@@ -20,29 +19,29 @@ const getAllTypes = async () => {
 };
 
 const getAllRestaurant = async (
-  page = 1, 
-  size = 5, 
-  field, 
-  sort, 
-  searchTerm = '', 
-  priceRange = 'all', 
-  provinceCode = '', 
-  districtCode = '', 
+  page = 1,
+  size = 5,
+  field,
+  sort,
+  searchTerm = '',
+  priceRange = 'all',
+  provinceCode = '',
+  districtCode = '',
   detail = '',
-  type = '', // Thêm tham số type để lọc theo loại nhà hàng
+  type = '',
   isReputable
 ) => {
   const regex = new RegExp(searchTerm, 'i');
-  
+
   // Tạo điều kiện lọc cơ bản
-  const matchConditions = { 
-    deleted_at: null, 
+  const matchConditions = {
+    deleted_at: null,
     $or: [
       { name: regex },
       { 'address.detail': regex }
     ]
   };
-  
+
   // Lọc theo priceRange
   if (priceRange === 'under_200k') {
     matchConditions.price_per_table = { $lt: 200000 };
@@ -74,7 +73,7 @@ const getAllRestaurant = async (
   if (isReputable) {
     matchConditions.rating = { $gte: 4.0 };
   }
-  
+
   const restaurants = await RestaurantModel.aggregate([
     { $match: matchConditions },
     {
@@ -125,18 +124,16 @@ const getAllRestaurant = async (
 
   const total = await RestaurantModel.countDocuments(matchConditions);
 
-  return { 
-    data: restaurants, 
-    info: { 
-      total, 
-      page, 
-      size, 
-      number_of_pages: Math.ceil(total / size) 
-    } 
+  return {
+    data: restaurants,
+    info: {
+      total,
+      page,
+      size,
+      number_of_pages: Math.ceil(total / size)
+    }
   };
 };
-
-
 
 
 const getAllRestaurantByUserId = async (id, page = 1, size = 5) => {
@@ -162,21 +159,21 @@ const getAllRestaurantWithPromotions = async (page = 1, size = 5) => {
     { $match: { deleted_at: null } },
     {
       $lookup: {
-        from: 'promotions', 
-        localField: 'promotions', 
-        foreignField: 'code', 
+        from: 'promotions',
+        localField: 'promotions',
+        foreignField: 'code',
         as: 'promotionDetails'
       }
     },
     {
       $unwind: {
         path: '$promotionDetails',
-        preserveNullAndEmptyArrays: true 
+        preserveNullAndEmptyArrays: true
       }
     },
     {
       $match: {
-        'promotionDetails.status': 'active' 
+        'promotionDetails.status': 'active'
       }
     },
     {
@@ -186,7 +183,7 @@ const getAllRestaurantWithPromotions = async (page = 1, size = 5) => {
         openTime: 1,
         closeTime: 1,
         description: 1,
-        rating:1,
+        rating: 1,
         image_url: 1,
         price_per_table: 1,
         promotionDetails: {
@@ -219,10 +216,10 @@ const getAllRestaurantWithPromotions = async (page = 1, size = 5) => {
         'promotionDetails.status': 'active'
       }
     },
-    { $count: 'total' } 
+    { $count: 'total' }
   ]);
 
-  const totalCount = total.length > 0 ? total[0].total : 0; 
+  const totalCount = total.length > 0 ? total[0].total : 0;
 
   return { data: restaurantsWithPromotions, info: { total: totalCount, page, size, number_of_pages: Math.ceil(totalCount / size) } };
 };
@@ -240,8 +237,8 @@ const getRestaurantById = async (id, userId) => {
     },
     {
       $lookup: {
-        from: 'promotions', 
-        localField: 'promotions', 
+        from: 'promotions',
+        localField: 'promotions',
         foreignField: 'code',
         as: 'promotionDetails'
       }
@@ -271,7 +268,7 @@ const getRestaurantById = async (id, userId) => {
         public_id_slider3: 1,
         public_id_slider4: 1,
         price_per_table: 1,
-        images:1,
+        images: 1,
         promotionDetails: {
           $cond: {
             if: { $eq: ['$promotionDetails.status', 'active'] },
@@ -303,15 +300,15 @@ const getRestaurantById = async (id, userId) => {
 
   const menus = await MenuItem.find({ restaurant_id: id, deleted_at: null }).exec();
 
-  if(userId){
-    updateUserViewHistory(userId,id)
+  if (userId) {
+    updateUserViewHistory(userId, id)
   }
   return restaurant.length > 0
     ? {
-        restaurant: restaurant[0],
-        totalPeople,
-        menus
-      }
+      restaurant: restaurant[0],
+      totalPeople,
+      menus
+    }
     : null;
 };
 
@@ -357,7 +354,7 @@ const createRestaurant = async (
     images,
   }
 ) => {
-console.log('address',address)
+  console.log('address', address)
   const existingRestaurant = await RestaurantModel.findOne({
     name,
     address,
@@ -930,7 +927,7 @@ const getCoordinates = async (address) => {
     return null;
   }
 };
- const getTopRatedRestaurants = async () => {
+const getTopRatedRestaurants = async () => {
   return await RestaurantModel.find()
     .sort({ rating: -1 }) // Sắp xếp giảm dần theo rating
     .limit(5) // Lấy 5 nhà hàng hàng đầu
