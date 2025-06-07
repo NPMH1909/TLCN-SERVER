@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "bookingrestaurant-453309",
+  "private_key_id": "f648f79ce4f8d6276370bb9af356fac774d4f40c",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCZ/ooJoqr19ltr\n6IP1BJT9+kzJxPUjc+ZNMTB4EbVUViBglzerULV+8dZ9CKNks5HMVlD7ypDYueew\nu/KZoaqwH921LaQofnmDtGxTf1vlWS762IlpXzwhJe/zTMMIBMSjux83RQJ8zd9L\n8GT99qi75btqO0FBEwa5bCaRJqQPucNmkzzrtlslFvFFFBrw+iA4wYrGJWZgTzdQ\nd65chhDyjXwB7/fLISbpSquFaQZoJhdkLJyt5lU2TOQ9+eibbtE5zLvSC7sefE+j\nVUTdxYSy3s/V90LVYqpJ1oLKlVb7cQcA40X6mjGGUPG7tlMWjqKlzL4n7mNzY7rz\nXQiX+4MzAgMBAAECggEABjSkuWitvQW1f266SphprKZ2i7b9LfWQtVGjI2OLTB/A\nZEQTwTqaZcg3HYjIlNlLqdFcqBjsp18ugAfC6gAC0eAm3hM9x0f5e548s0yxlld2\ntjMdrnphAPD3b3WLcnpGtlZnFqIYTJE7S2MfnsBe4luKpuhGY+nxXm2GTFkjSWLh\n+GEES6vTlMJiXl+ZkSejiTnt407VyG8svHiyGq1X5B92M5FlbjT60GFZmNfKNb/L\nG+PcoBK6FQj1dYvm1cD9NnWk3w/3XV6xeSf42UuA6Emm9tGY9Nm5X6Cvuk53JnPL\n1mApdEii8M8WAZYXrYATZZsIIdGfmlrfgJlXUSRlcQKBgQDW8qSCd5ACFfI01wl7\n4/J8L2Rp9N5xtrIZyAyiAhnn/tHCqzxq2fNx8hjS1WeRCtFoIMRgw0EjjNCRUrMM\nEwLh+N4y+AEFptGi1CU6iBxOhvOtrQTtMvjkSlU2SMq7sVmXZajqOdODH8lCKnlk\nhSOnT+ggKNbUvlz98KiYmfxpawKBgQC3Z7hhZw1Qkbcwe2vZ0OlUqVrjPfdEmyzA\n5jUZA+o29lD4JfurOUHFHlb5VdINmBJlblnvWIh8nUSi78w0SmbM5VgQATfvZpnS\n6yh6p3AyBg91egZr4rXw58AshRGEa9RUi58vaVVxGH8ToknlNHuqCiWWcz3OGngR\nGkZUapbXWQKBgDCXE2dG3fAKxAD753HxOpymHf3x0+NC2IoJdgmdjfuq2AI4sWS6\nNlU41DG8+jeIiYQPfDUfjncZ2wAvALinB4zLtHczJw//AP7dFDliEXwS97z4EtgI\nIMmCoDawR9wcIFOgMIoaXl0S720cqup1SnUFFEVI1h+rlNv27jXpAW1XAoGAPBQB\n1gZH2kihVYRYg/VnOZBwcVfvE84xDs9aPWOG6ZIuW9s1YZVT8hpKK0rtj/5sqEVJ\nuJmrvAZYYXdj0Q0+N4g5HKUJiaZ2ZR0bGXKX0gsiLT1XtSeCqfOAhBTi9BnOaBOE\nhadfkbiQiAH1atuSVtUUEwCVElqhUhjlSOnRl6ECgYEAuVkkK+a2wzynuUErlyDB\n/XiqiKxUSfmjAHkXKwLw0+YpkZKbZWqz8BfbtH1Z4eVSFQmwmYo3RbkfUEdG+rIh\ncIXXumWbL0GNybMz+T9LKUvXmchs0GenH921j4NTZEp4HXDEbUJz/3AKTXBilCVw\nBz3lPkZE0MsYvhkMNRaq9WQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "chatbot@bookingrestaurant-453309.iam.gserviceaccount.com",
+  "client_id": "108244578646261048807",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/chatbot%40bookingrestaurant-453309.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
